@@ -484,45 +484,66 @@
             },
 
             evaluate: function (text) {
-                // Mock Analysis Logic
-                // We mock a "Grade" based on length and randomness to force the "retry" mechanic.
-                // Longer text = higher chance of passing.
+                const currentOperator = this.state.operator;
+                const profile = HBDI_PROFILES[currentOperator.hbdi];
+                const lowerText = text.toLowerCase();
 
-                const isLong = text.length > 15;
-                let leanScore = Math.floor(Math.random() * 20) + 60; // Base 60-80
-                let softScore = Math.floor(Math.random() * 20) + 60; // Base 60-80
+                // 1. ANALYZE HBDI ALIGNMENT (Keyword Heuristics)
+                let hbdiScore = 0;
+                let feedback = "";
 
-                if (isLong) {
-                    leanScore += 15;
-                    softScore += 15;
+                // Keywords for each profile
+                const keywords = {
+                    blue: ['dato', 'indicador', 'roi', 'hecho', 'logica', 'numero', 'metric', 'fact', 'data', 'logic', 'number', 'analisis', 'analysis'],
+                    green: ['proceso', 'paso', 'orden', 'plan', 'seguridad', 'metodo', 'cronograma', 'process', 'step', 'plan', 'method', 'schedule'],
+                    red: ['equipo', 'sentir', 'nosotros', 'ayuda', 'apoyo', 'juntos', 'persona', 'team', 'feel', 'help', 'support', 'together'],
+                    yellow: ['vision', 'idea', 'futuro', 'innovar', 'global', 'concepto', 'vision', 'idea', 'future', 'concept', 'why', 'porque']
+                };
+
+                // Check for profile matches
+                const hits = keywords[currentOperator.hbdi].filter(word => lowerText.includes(word));
+
+                // Expert Logic: "Enganche"
+                if (hits.length >= 1) {
+                    hbdiScore = 100; // Good match
+                } else {
+                    // Check for MISMATCH (e.g. talking feelings to a Blue)
+                    const isMismatchRed = keywords['red'].some(w => lowerText.includes(w)) && currentOperator.hbdi === 'blue';
+                    const isMismatchBlue = keywords['blue'].some(w => lowerText.includes(w)) && currentOperator.hbdi === 'red';
+
+                    hbdiScore = 40; // Fail by default if no keywords
+
+                    if (isMismatchRed) feedback = "DETECTED: Emotional vocabulary on a Blue profile. Ineffective.";
+                    if (isMismatchBlue) feedback = "DETECTED: Cold metrics on a Red profile. Alienation risk.";
                 }
 
-                const currentOperator = this.state.operator;
-                const profileName = HBDI_PROFILES[currentOperator.hbdi].name;
+                // 2. ANALYZE LEAN KNOWLEDGE (Simple check)
+                const leanKeywords = ['muda', 'waste', 'desperdicio', 'valor', 'value', 'kaizen', 'flujo', 'flow', 'cliente', 'customer'];
+                const hasLean = leanKeywords.some(w => lowerText.includes(w)) || text.length > 25;
 
-                // Pass threshold (average > 80)
-                const isPass = (leanScore + softScore) / 2 >= 80;
+                const leanScore = hasLean ? 100 : 50;
+
+                // 3. MENTOR DECISION
+                const totalScore = (hbdiScore + leanScore) / 2;
+                const isPass = totalScore >= 80;
 
                 if (isPass) {
-                    // SUCCESS
+                    // SUCCESS - Expert Affirmation
                     const successMsg = this.state.lang === 'es-MX'
-                        ? "Excelente abordaje. Has conectado con su estilo de pensamiento. Procediendo a la siguiente estación."
-                        : "Excellent approach. You matched their thinking style. Proceeding to the next station.";
+                        ? `Conexión exitosa. Has hablado el idioma ${profile.name} y atacado el desperdicio. Procediendo.`
+                        : `Successful connection. You spoke ${profile.name} language and addressed the waste. Proceeding.`;
 
-                    document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-green)">MENTOR:</span> ${successMsg}`;
-                    speechMgr.speak(successMsg);
+                    this.printMentor(successMsg, true);
 
-                    // Save result
+                    // Save and Move On
                     this.state.results.push({
                         station: this.state.currentStationIndex + 1,
                         operator: currentOperator,
                         response: text,
-                        score: { lean: leanScore, softSkills: softScore }
+                        score: { lean: leanScore, softSkills: hbdiScore }
                     });
 
-                    // Clear and lock input temporarily
                     document.getElementById('user-input').value = "";
-
                     setTimeout(() => {
                         document.getElementById('dialogue-box').style.display = 'none';
                         if (this.state.currentStationIndex < 3) {
@@ -533,38 +554,57 @@
                     }, 4000);
 
                 } else {
-                    // FAIL - MENTOR FEEDBACK
-                    let hint = "";
+                    // FAIL - Reflective Questioning
+                    let question = "";
                     if (this.state.lang === 'es-MX') {
-                        switch (currentOperator.hbdi) {
-                            case 'blue': hint = "Recuerda: Un perfil Azul valora los DATOS, hechos y lógica pura. Sé más técnico."; break;
-                            case 'green': hint = "Recuerda: Un perfil Verde necesita ORDEN, pasos detallados y seguridad. Estructura tu respuesta."; break;
-                            case 'red': hint = "Recuerda: Un perfil Rojo prioriza a las PERSONAS y sentimientos. Sé más empático y cálido."; break;
-                            case 'yellow': hint = "Recuerda: Un perfil Amarillo busca VISIÓN, ideas y 'el bosque completo'. No te pierdas en detalles."; break;
+                        if (currentOperator.hbdi === 'blue') {
+                            question = `Comandante, un perfil Azul exige evidencias. Tu respuesta fue vaga. ¿Dónde están los datos o métricas que prueban tu punto sobre el desperdicio?`;
+                        } else if (currentOperator.hbdi === 'green') {
+                            question = `El perfil Verde se paraliza sin un plan. ¿Le has dado un proceso paso a paso o solo intenciones etéreas? Estructura tu orden.`;
+                        } else if (currentOperator.hbdi === 'red') {
+                            question = `Cuidado. Este operador es Rojo. Si le hablas solo de eficiencia técnica, lo perderás. ¿Cómo afecta esto al bienestar del equipo?`;
+                        } else if (currentOperator.hbdi === 'yellow') {
+                            question = `Estás aburriendo a un Amarillo con detalles irrelevantes. Él quiere saber el 'POR QUÉ' y la visión global. ¿Cuál es el impacto final?`;
                         }
-                        const mentorMsg = `Veo tu punto técnico (${leanScore}%), pero tu adaptación al perfil ${profileName} es baja (${softScore}%). ${hint} Inténtalo de nuevo.`;
-                        document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-yellow)">MENTOR:</span> ${mentorMsg}`;
-                        speechMgr.speak(mentorMsg);
+
+                        if (feedback) question += ` (${feedback})`;
+
+                        this.printMentor(question, false);
                     } else {
-                        switch (currentOperator.hbdi) {
-                            case 'blue': hint = "Remember: Blue profiles value DATA, facts. Be more technical."; break;
-                            case 'green': hint = "Remember: Green profiles need ORDER and safety. Structure your response."; break;
-                            case 'red': hint = "Remember: Red profiles prioritize PEOPLE. Be more empathetic."; break;
-                            case 'yellow': hint = "Remember: Yellow profiles seek VISION. Don't get lost in details."; break;
+                        if (currentOperator.hbdi === 'blue') {
+                            question = `Commander, Blue profiles demand evidence. Where are the metrics proving your point about the waste?`;
+                        } else if (currentOperator.hbdi === 'green') {
+                            question = `Green profiles freeze without a plan. Have you given a step-by-step process? Structure your order.`;
+                        } else if (currentOperator.hbdi === 'red') {
+                            question = `Careful. This operator is Red. Pure technical efficiency will alienate them. How does this affect the team?`;
+                        } else if (currentOperator.hbdi === 'yellow') {
+                            question = `You are boring a Yellow with details. They want the 'WHY' and the big picture. What is the ultimate impact?`;
                         }
-                        const mentorMsg = `Technical point taken (${leanScore}%), but adaptation to ${profileName} is low (${softScore}%). ${hint} Try again.`;
-                        document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-yellow)">MENTOR:</span> ${mentorMsg}`;
-                        speechMgr.speak(mentorMsg);
+                        if (feedback) question += ` (${feedback})`;
+                        this.printMentor(question, false);
                     }
 
-                    // Focus for retry
                     document.getElementById('user-input').focus();
                 }
             },
 
+            printMentor: function (msg, isSuccess) {
+                const color = isSuccess ? 'var(--neon-green)' : 'var(--neon-yellow)';
+                document.getElementById('agent-msg').innerHTML = `<span style="color:${color}; font-weight:bold;">MENTOR [AI]:</span> ${msg}`;
+                speechMgr.speak(msg);
+            },
+
             nextStation: function () {
-                this.state.currentStationIndex++;
-                this.startStation();
+                const msg = this.state.lang === 'es-MX'
+                    ? "Estación completada. Procediendo a la siguiente zona de la planta."
+                    : "Station completed. Proceeding to the next zone.";
+
+                speechMgr.speak(msg);
+
+                setTimeout(() => {
+                    this.state.currentStationIndex++;
+                    this.startStation();
+                }, 3000);
             },
 
             showFinalReport: function () {
