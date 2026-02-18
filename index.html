@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,9 @@
     <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --neon-blue: #00f3ff;
@@ -44,7 +46,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Let clicks pass to 3D by default */
+            pointer-events: none;
+            /* Let clicks pass to 3D by default */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -65,15 +68,19 @@
             text-align: center;
         }
 
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             font-family: 'Orbitron', sans-serif;
             text-transform: uppercase;
             text-shadow: 0 0 10px currentColor;
             margin-bottom: 1rem;
         }
 
-        input, select, textarea {
-            background: rgba(0,0,0,0.5);
+        input,
+        select,
+        textarea {
+            background: rgba(0, 0, 0, 0.5);
             border: 1px solid var(--neon-blue);
             color: white;
             padding: 10px;
@@ -84,7 +91,9 @@
             box-sizing: border-box;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             box-shadow: 0 0 10px var(--neon-pink);
             border-color: var(--neon-pink);
@@ -125,7 +134,8 @@
             opacity: 0.7;
         }
 
-        .profile-card:hover, .profile-card.selected {
+        .profile-card:hover,
+        .profile-card.selected {
             opacity: 1;
             transform: scale(1.05);
             box-shadow: 0 0 15px currentColor;
@@ -136,11 +146,12 @@
             justify-content: space-between;
             align-items: stretch;
             padding: 20px;
-            display: none; /* Hidden initially */
+            display: none;
+            /* Hidden initially */
         }
 
         .hud-panel {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid var(--neon-blue);
             padding: 15px;
             pointer-events: auto;
@@ -161,7 +172,7 @@
             bottom: 20px;
             left: 20px;
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
         }
 
         #dialogue-box {
@@ -185,7 +196,7 @@
             justify-content: center;
             margin: 0 auto;
         }
-        
+
         #mic-btn.listening {
             background: var(--neon-red);
             color: white;
@@ -193,16 +204,29 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 0, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+            }
         }
 
-        .hidden { display: none !important; }
-        .visible { display: flex !important; }
+        .hidden {
+            display: none !important;
+        }
 
+        .visible {
+            display: flex !important;
+        }
     </style>
 </head>
+
 <body>
 
     <div id="canvas-container"></div>
@@ -212,11 +236,11 @@
         <div class="interactive">
             <h1>System Initialization</h1>
             <p>Please identify yourself to proceed.</p>
-            
+
             <input type="text" id="user-name" placeholder="Name / Nombre">
             <input type="date" id="user-date">
             <input type="text" id="user-position" placeholder="Position / Puesto">
-            
+
             <div style="display:flex; gap:10px;">
                 <select id="user-lang">
                     <option value="es-MX">Español (MX)</option>
@@ -241,21 +265,25 @@
         <div class="interactive" style="max-width: 800px;">
             <h2 id="hbdi-title">Select Resonance Frequency</h2>
             <p id="hbdi-desc">Choose the profile that best fits your thinking style.</p>
-            
+
             <div class="profile-grid">
-                <div class="profile-card" style="border-color: var(--neon-blue); color: var(--neon-blue);" onclick="app.selectProfile('blue')">
+                <div class="profile-card" style="border-color: var(--neon-blue); color: var(--neon-blue);"
+                    onclick="app.selectProfile('blue')">
                     <h3>A - Blue (Lógico)</h3>
                     <p>Analytical, Fact-based, Quantitative.</p>
                 </div>
-                <div class="profile-card" style="border-color: var(--neon-green); color: var(--neon-green);" onclick="app.selectProfile('green')">
+                <div class="profile-card" style="border-color: var(--neon-green); color: var(--neon-green);"
+                    onclick="app.selectProfile('green')">
                     <h3>B - Green (Práctico)</h3>
                     <p>Organized, Sequential, Planned.</p>
                 </div>
-                <div class="profile-card" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="app.selectProfile('red')">
+                <div class="profile-card" style="border-color: var(--neon-red); color: var(--neon-red);"
+                    onclick="app.selectProfile('red')">
                     <h3>C - Red (Relacional)</h3>
                     <p>Interpersonal, Emotional, Kinesthetic.</p>
                 </div>
-                <div class="profile-card" style="border-color: var(--neon-yellow); color: var(--neon-yellow);" onclick="app.selectProfile('yellow')">
+                <div class="profile-card" style="border-color: var(--neon-yellow); color: var(--neon-yellow);"
+                    onclick="app.selectProfile('yellow')">
                     <h3>D - Yellow (Experimental)</h3>
                     <p>Holistic, Intuitive, Integrating.</p>
                 </div>
@@ -309,27 +337,36 @@
             yellow: { color: 0xfff200, name: 'Yellow/Amarillo', trait: 'Creative' }
         };
 
+        const STATION_COORDS = [
+            { x: 0, z: -10 }, // North
+            { x: 10, z: 0 },  // East
+            { x: 0, z: 10 },  // South
+            { x: -10, z: 0 }  // West
+        ];
+
         // --- APP STATE ---
         const app = {
             state: {
                 user: {},
-                operator: {},
+                operator: {}, // Current operator
+                missionQueue: [], // Array of 4 scenarios
+                currentStationIndex: 0,
+                results: [],
                 lang: 'es-MX',
                 phase: 'SETUP' // SETUP, HBDI, GAME, REPORT
             },
 
-            init: function() {
+            init: function () {
                 try {
                     document.getElementById('user-date').valueAsDate = new Date();
                     threeMgr.init();
                     threeMgr.animate();
-                    // Pre-load voices logic moved to speechMgr
                 } catch (e) {
                     console.error("Init failed", e);
                 }
             },
 
-            showHBDISelection: function(showGuide) {
+            showHBDISelection: function (showGuide) {
                 this.state.user.name = document.getElementById('user-name').value || 'User';
                 this.state.user.position = document.getElementById('user-position').value;
                 this.state.user.date = document.getElementById('user-date').value;
@@ -340,119 +377,209 @@
                 document.getElementById('setup-screen').classList.remove('visible');
                 document.getElementById('hbdi-screen').classList.remove('hidden');
                 document.getElementById('hbdi-screen').classList.add('visible');
-                
-                if(this.state.lang === 'es-MX') {
+
+                if (this.state.lang === 'es-MX') {
                     document.getElementById('hbdi-title').innerText = "Selección de Perfil";
                     document.getElementById('hbdi-desc').innerText = "Selecciona el perfil que mejor te identifique.";
                 }
             },
 
-            selectProfile: function(color) {
+            selectProfile: function (color) {
                 this.state.user.hbdi = color;
-                this.startGame();
+                this.prepareMission();
             },
 
-            startGame: function() {
+            prepareMission: function () {
+                // Generate 4 unique scenarios
+                const wasteList = LEAN_WASTES[this.state.lang];
+                const profileKeys = Object.keys(HBDI_PROFILES);
+
+                // Shuffle profiles to ensure unique order
+                for (let i = profileKeys.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [profileKeys[i], profileKeys[j]] = [profileKeys[j], profileKeys[i]];
+                }
+
+                this.state.missionQueue = profileKeys.map((key, index) => {
+                    return {
+                        id: index + 1,
+                        name: "OP-" + Math.floor(Math.random() * 900 + 100),
+                        hbdi: key,
+                        waste: wasteList[Math.floor(Math.random() * wasteList.length)],
+                        coords: STATION_COORDS[index]
+                    };
+                });
+
+                this.state.currentStationIndex = 0;
+                this.startStation();
+            },
+
+            startStation: function () {
                 document.getElementById('hbdi-screen').classList.add('hidden');
                 document.getElementById('hud-layer').style.display = 'flex';
-                
-                const wasteList = LEAN_WASTES[this.state.lang];
-                const waste = wasteList[Math.floor(Math.random() * wasteList.length)];
-                
-                const profiles = Object.keys(HBDI_PROFILES);
-                const opProfileKey = profiles[Math.floor(Math.random() * profiles.length)];
-                
-                this.state.operator = {
-                    name: "OP-" + Math.floor(Math.random() * 900 + 100),
-                    hbdi: opProfileKey,
-                    waste: waste
-                };
+                document.getElementById('dialogue-box').style.display = 'none'; // Ensure closed
 
-                threeMgr.spawnOperator(HBDI_PROFILES[opProfileKey].color);
+                const currentScenario = this.state.missionQueue[this.state.currentStationIndex];
+                this.state.operator = currentScenario;
 
-                const missionText = this.state.lang === 'es-MX' 
-                    ? `Detectar Desperdicio: ${waste}. Operador: ${this.state.operator.name} (${HBDI_PROFILES[opProfileKey].name})`
-                    : `Detect Waste: ${waste}. Operator: ${this.state.operator.name} (${HBDI_PROFILES[opProfileKey].name})`;
-                
+                // Move Player back to center or relative start?
+                // For simplicity, let's keep player where they are but they have to find the new light.
+                // Or reset player to center (0,0,0) to make it easier to find.
+                threeMgr.resetPlayer();
+
+                // Spawn Operator
+                threeMgr.spawnOperator(
+                    HBDI_PROFILES[currentScenario.hbdi].color,
+                    currentScenario.coords.x,
+                    currentScenario.coords.z
+                );
+
+                // Update UI
+                const missionText = this.state.lang === 'es-MX'
+                    ? `Estación ${currentScenario.id}/4: Detectar ${currentScenario.waste}. Operador: ${currentScenario.name} (${HBDI_PROFILES[currentScenario.hbdi].name})`
+                    : `Station ${currentScenario.id}/4: Detect ${currentScenario.waste}. Operator: ${currentScenario.name} (${HBDI_PROFILES[currentScenario.hbdi].name})`;
+
                 document.getElementById('mission-detail').innerText = missionText;
 
-                const intro = this.state.lang === 'es-MX'
-                    ? `Bienvenido ${this.state.user.name}. Tu misión es abordar al operador ${this.state.operator.name} sobre el desperdicio de ${waste}. Acércate a él.`
-                    : `Welcome ${this.state.user.name}. Your mission is to address operator ${this.state.operator.name} regarding ${waste} waste. Approach him.`;
-                
+                // Speech
+                let intro = "";
+                if (this.state.currentStationIndex === 0) {
+                    intro = this.state.lang === 'es-MX'
+                        ? `Bienvenido ${this.state.user.name}. Tu misión tiene 4 estaciones. Primera parada: Abordar a ${currentScenario.name} sobre ${currentScenario.waste}.`
+                        : `Welcome ${this.state.user.name}. Your mission has 4 stations. First stop: Address ${currentScenario.name} about ${currentScenario.waste}.`;
+                } else {
+                    // Brief update
+                    intro = this.state.lang === 'es-MX'
+                        ? `Nueva zona asignada. Objetivo: ${currentScenario.waste}.`
+                        : `New zone assigned. Target: ${currentScenario.waste}.`;
+                }
+
                 speechMgr.speak(intro);
-                
                 this.state.phase = 'GAME';
             },
 
-            interactionTriggered: function() {
-                if(this.state.phase !== 'GAME') return;
+            interactionTriggered: function () {
+                if (this.state.phase !== 'GAME') return;
                 this.state.phase = 'DIALOGUE';
-                
+
                 document.getElementById('dialogue-box').style.display = 'flex';
-                // Note: controls.unlock() is handled by pointerlock exit logic ideally, but explicit call helps.
-                document.exitPointerLock(); 
+                document.exitPointerLock();
 
                 const prompt = this.state.lang === 'es-MX'
                     ? "Hola. ¿Qué necesitas de mí?"
                     : "Hello. What do you need from me?";
-                
+
                 document.getElementById('agent-msg').innerText = `${this.state.operator.name}: "${prompt}"`;
-                speechMgr.speak(prompt);
-                
+
+                document.getElementById('user-input').value = ""; // Clear previous input
                 document.getElementById('user-input').focus();
+
+                speechMgr.speak(prompt);
             },
 
-            submitResponse: function() {
+            submitResponse: function () {
                 const response = document.getElementById('user-input').value;
-                if(!response) return;
+                if (!response) return;
                 this.evaluate(response);
             },
 
-            evaluate: function(text) {
+            evaluate: function (text) {
+                // Mock Evaluation
                 const score = {
-                    lean: Math.floor(Math.random() * 30) + 70, 
+                    lean: Math.floor(Math.random() * 30) + 70,
                     softSkills: Math.floor(Math.random() * 30) + 70
                 };
-                this.showReport(text, score);
+
+                // Save Result
+                this.state.results.push({
+                    station: this.state.currentStationIndex + 1,
+                    operator: this.state.operator,
+                    response: text,
+                    score: score
+                });
+
+                // Next Step?
+                if (this.state.currentStationIndex < 3) {
+                    this.nextStation();
+                } else {
+                    this.showFinalReport();
+                }
             },
 
-            showReport: function(lastResponse, score) {
+            nextStation: function () {
+                const msg = this.state.lang === 'es-MX'
+                    ? "Estación completada. Procediendo a la siguiente zona de la planta."
+                    : "Station completed. Proceeding to the next zone.";
+
+                speechMgr.speak(msg);
+
+                // Delay slightly to let speech start
+                setTimeout(() => {
+                    this.state.currentStationIndex++;
+                    this.startStation();
+                }, 3000); // 3 seconds delay
+            },
+
+            showFinalReport: function () {
                 document.getElementById('hud-layer').style.display = 'none';
                 document.getElementById('report-screen').classList.remove('hidden');
                 document.getElementById('report-screen').classList.add('visible');
-                
-                const reportHTML = `
-                    <h3>${this.state.lang === 'es-MX' ? 'Evaluación' : 'Evaluation'}</h3>
-                    <p><strong>Operator HBDI:</strong> ${HBDI_PROFILES[this.state.operator.hbdi].name}</p>
-                    <p><strong>Lean Waste:</strong> ${this.state.operator.waste}</p>
-                    <p><strong>Your Input:</strong> "${lastResponse}"</p>
+
+                const avgLean = Math.round(this.state.results.reduce((acc, curr) => acc + curr.score.lean, 0) / 4);
+                const avgSoft = Math.round(this.state.results.reduce((acc, curr) => acc + curr.score.softSkills, 0) / 4);
+
+                let reportHTML = `
+                    <h3>${this.state.lang === 'es-MX' ? 'Reporte Final de Misión' : 'Final Mission Report'}</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; text-align:left; font-size: 0.9em; margin-bottom: 20px;">
+                        <div><strong>Name:</strong> ${this.state.user.name}</div>
+                        <div><strong>Date:</strong> ${this.state.user.date}</div>
+                        <div><strong>Position:</strong> ${this.state.user.position}</div>
+                        <div><strong>User HBDI:</strong> ${this.state.user.hbdi ? HBDI_PROFILES[this.state.user.hbdi].name : 'N/A'}</div>
+                    </div>
                     <hr style="border-color:var(--neon-blue)">
-                    <p><strong>Lean Technical Logic:</strong> ${score.lean}%</p>
-                    <p><strong>HBDI Adaptation:</strong> ${score.softSkills}%</p>
-                    <p><em>${score.softSkills > 80 ? 'Excellent adaptation to operator profile!' : 'Consider user personality style more.'}</em></p>
+                    <div style="max-height: 40vh; overflow-y: auto; text-align: left;">
                 `;
+
+                this.state.results.forEach(res => {
+                    const profileName = HBDI_PROFILES[res.operator.hbdi].name;
+                    reportHTML += `
+                        <div style="margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                            <p style="margin:5px 0"><strong style="color:var(--neon-pink)">Station ${res.station}:</strong> ${profileName} - ${res.operator.waste}</p>
+                            <p style="margin:5px 0; font-style:italic; color:#ccc;">"${res.response}"</p>
+                            <p style="margin:5px 0">Lean: ${res.score.lean}% | HBDI: ${res.score.softSkills}%</p>
+                        </div>
+                    `;
+                });
+
+                reportHTML += `
+                    </div>
+                    <hr style="border-color:var(--neon-blue)">
+                    <h4>OVERALL PERFORMANCE</h4>
+                    <p><strong>Lean Technical Average:</strong> ${avgLean}%</p>
+                    <p><strong>HBDI Adaptation Average:</strong> ${avgSoft}%</p>
+                `;
+
                 document.getElementById('report-content').innerHTML = reportHTML;
-                
+
                 const outro = this.state.lang === 'es-MX'
-                    ? `Ejercicio completado. Puntuación Lean: ${score.lean} porciento.`
-                    : `Exercise complete. Lean score: ${score.lean} percent.`;
+                    ? `Todas las estaciones completadas. Reporte generado.`
+                    : `All stations completed. Report generated.`;
                 speechMgr.speak(outro);
-            }
+            },
         };
 
         // --- SPEECH MANAGER ---
         const speechMgr = {
             synth: window.speechSynthesis,
             recognition: null,
-            
-            init: function() {
+
+            init: function () {
                 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                     this.recognition = new SpeechRecognition();
                     this.recognition.continuous = false;
                     this.recognition.interimResults = false;
-                    
+
                     this.recognition.onresult = (event) => {
                         const transcript = event.results[0][0].transcript;
                         document.getElementById('user-input').value += transcript + " ";
@@ -463,44 +590,43 @@
                         console.warn("Speech error", e);
                         document.getElementById('mic-btn').classList.remove('listening');
                     };
-                    
+
                     this.recognition.onend = () => {
-                         document.getElementById('mic-btn').classList.remove('listening');
+                        document.getElementById('mic-btn').classList.remove('listening');
                     };
                 }
             },
 
-            speak: function(text) {
-                if(this.synth.speaking) this.synth.cancel();
-                
+            speak: function (text) {
+                if (this.synth.speaking) this.synth.cancel();
+
                 const utter = new SpeechSynthesisUtterance(text);
                 utter.lang = app.state.lang;
-                
+
                 const voices = this.synth.getVoices();
-                const gender = app.state.voiceGender; 
-                
-                // Voice selection heuristic
+                const gender = app.state.voiceGender;
+
                 const targetVoice = voices.find(v => v.lang.includes(app.state.lang.split('-')[0]) && (
-                    gender === 'female' ? (v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Google Español')) 
-                                      : (v.name.includes('Male') || v.name.includes('David'))
+                    gender === 'female' ? (v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Google Español'))
+                        : (v.name.includes('Male') || v.name.includes('David'))
                 ));
-                
-                if(targetVoice) utter.voice = targetVoice;
-                
+
+                if (targetVoice) utter.voice = targetVoice;
+
                 this.synth.speak(utter);
             },
 
-            toggleListen: function() {
-                if(!this.recognition) {
+            toggleListen: function () {
+                if (!this.recognition) {
                     alert('Speech Recognition not supported in this browser.');
                     return;
                 }
-                
+
                 this.recognition.lang = app.state.lang;
                 try {
                     this.recognition.start();
                     document.getElementById('mic-btn').classList.add('listening');
-                } catch(e) {
+                } catch (e) {
                     this.recognition.stop();
                     document.getElementById('mic-btn').classList.remove('listening');
                 }
@@ -509,17 +635,16 @@
 
         // --- THREE.JS MANAGER ---
         let scene, camera, renderer;
-        let playerObj, operatorObj;
+        let operatorObj, operatorLight;
         const keys = { w: false, a: false, s: false, d: false };
         let euler = new THREE.Euler(0, 0, 0, 'YXZ');
 
         const threeMgr = {
-            init: function() {
+            init: function () {
                 scene = new THREE.Scene();
                 scene.fog = new THREE.FogExp2(0x050510, 0.02);
 
                 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.set(0, 1.6, 5); 
 
                 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -527,7 +652,7 @@
 
                 const ambientLight = new THREE.AmbientLight(0x404040);
                 scene.add(ambientLight);
-                
+
                 const gridColor = new THREE.Color(0x00f3ff);
                 const grid = new THREE.GridHelper(100, 100, gridColor, 0x111111);
                 scene.add(grid);
@@ -541,13 +666,13 @@
 
                 window.addEventListener('keydown', (e) => this.onKey(e, true));
                 window.addEventListener('keyup', (e) => this.onKey(e, false));
-                
+
                 window.addEventListener('resize', () => {
                     camera.aspect = window.innerWidth / window.innerHeight;
                     camera.updateProjectionMatrix();
                     renderer.setSize(window.innerWidth, window.innerHeight);
                 });
-                
+
                 document.addEventListener('mousemove', (e) => {
                     if (document.pointerLockElement === document.body) {
                         euler.setFromQuaternion(camera.quaternion);
@@ -565,40 +690,49 @@
                 });
             },
 
-            onKey: function(e, down) {
-                if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            resetPlayer: function () {
+                camera.position.set(0, 1.6, 0); // Center
+                camera.lookAt(0, 1.6, -10);
+            },
 
-                switch(e.key.toLowerCase()) {
+            onKey: function (e, down) {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+                switch (e.key.toLowerCase()) {
                     case 'w': keys.w = down; break;
                     case 'a': keys.a = down; break;
                     case 's': keys.s = down; break;
                     case 'd': keys.d = down; break;
-                    case 'e': 
-                        if(down) this.checkInteraction(); 
+                    case 'e':
+                        if (down) this.checkInteraction();
                         break;
                 }
             },
 
-            spawnOperator: function(hexColor) {
+            spawnOperator: function (hexColor, x, z) {
+                // Remove old if exists
+                if (operatorObj) scene.remove(operatorObj);
+                if (operatorLight) scene.remove(operatorLight);
+
                 const geo = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 32);
-                const mat = new THREE.MeshPhongMaterial({ 
-                    color: hexColor, 
+                const mat = new THREE.MeshPhongMaterial({
+                    color: hexColor,
                     emissive: hexColor,
                     emissiveIntensity: 0.5,
                     shininess: 100
                 });
                 operatorObj = new THREE.Mesh(geo, mat);
-                operatorObj.position.set(0, 0.9, -10); 
+                operatorObj.position.set(x, 0.9, z);
                 scene.add(operatorObj);
 
-                const pointLight = new THREE.PointLight(hexColor, 1, 10);
-                pointLight.position.set(0, 2, -9);
-                scene.add(pointLight);
+                operatorLight = new THREE.PointLight(hexColor, 1, 10);
+                operatorLight.position.set(x, 2, z); // Above the operator
+                scene.add(operatorLight);
             },
 
-            animate: function() {
+            animate: function () {
                 requestAnimationFrame(() => threeMgr.animate());
-                
+
                 if (app.state.phase === 'GAME') {
                     const speed = 0.1;
                     const direction = new THREE.Vector3();
@@ -609,37 +743,36 @@
                     const side = new THREE.Vector3();
                     side.crossVectors(camera.up, direction).normalize();
 
-                    if(keys.w) camera.position.addScaledVector(direction, speed);
-                    if(keys.s) camera.position.addScaledVector(direction, -speed);
-                    if(keys.a) camera.position.addScaledVector(side, speed);
-                    if(keys.d) camera.position.addScaledVector(side, -speed);
-                    
-                    // Boundary check roughly
-                    camera.position.y = 1.6; 
+                    if (keys.w) camera.position.addScaledVector(direction, speed);
+                    if (keys.s) camera.position.addScaledVector(direction, -speed);
+                    if (keys.a) camera.position.addScaledVector(side, speed);
+                    if (keys.d) camera.position.addScaledVector(side, -speed);
+
+                    camera.position.y = 1.6;
                 }
 
-                if(operatorObj && app.state.phase === 'GAME') {
+                if (operatorObj && app.state.phase === 'GAME') {
                     const dist = camera.position.distanceTo(operatorObj.position);
-                    if(dist < 4) {
-                         document.getElementById('controls-hint').innerHTML = "PRESS <span style='color:var(--neon-green)'>[E]</span> TO INTERACT";
+                    if (dist < 4) {
+                        document.getElementById('controls-hint').innerHTML = "PRESS <span style='color:var(--neon-green)'>[E]</span> TO INTERACT";
                     } else {
-                         document.getElementById('controls-hint').innerText = "WASD: Move | MOUSE: Look | Click to Focus";
+                        document.getElementById('controls-hint').innerText = "WASD: Move | MOUSE: Look | Click to Focus";
                     }
                 }
 
                 renderer.render(scene, camera);
             },
 
-            checkInteraction: function() {
-                if(!operatorObj) return;
+            checkInteraction: function () {
+                if (!operatorObj) return;
                 const dist = camera.position.distanceTo(operatorObj.position);
-                if(dist < 4) {
+                if (dist < 4) {
                     app.interactionTriggered();
                 }
             }
         };
 
-        window.onload = function() {
+        window.onload = function () {
             speechMgr.init();
             app.init();
             window.speechSynthesis.getVoices();
@@ -647,4 +780,5 @@
 
     </script>
 </body>
+
 </html>
