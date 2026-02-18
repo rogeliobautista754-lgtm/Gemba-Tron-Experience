@@ -3,26 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemba-Tron-Experience</title>
+    <title>Gemba-Tron Experience</title>
     <script type="importmap">
     {
       "imports": {
-        "react": "https://esm.sh/react@^19.2.4/",
-        "react/": "https://esm.sh/react@^19.2.4/",
-        "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0"
       }
     }
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; }
+        body { background-color: #000; color: #0f0; font-family: 'Courier New', monospace; overflow: hidden; }
+        .tron-border { border: 2px solid #0ff; box-shadow: 0 0 15px #0ff; }
+        .scanline { background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 255, 0.1) 50%); background-size: 100% 4px; pointer-events: none; position: fixed; inset: 0; }
     </style>
 </head>
 <body>
     <div id="root"></div>
+    <div class="scanline"></div>
+
     <script type="module">
-        // Tu aplicación cargará aquí directamente sin bloqueos de contraseña por ahora
-        console.log("Sistema Gemba-Tron Iniciado");
+        import React, { useState, useEffect } from 'react';
+        import ReactDOM from 'react-dom';
+
+        const App = () => {
+            const [authorized, setAuthorized] = useState(false);
+
+            useEffect(() => {
+                const pass = prompt("SISTEMA DE SEGURIDAD TRON\nIngrese código de acceso Alpha:");
+                if (pass === "Alpha2026") {
+                    setAuthorized(true);
+                } else {
+                    alert("ACCESO DENEGADO");
+                    window.location.reload();
+                }
+            }, []);
+
+            if (!authorized) return <div className="h-screen bg-black"></div>;
+
+            return (
+                <div className="h-screen flex flex-col items-center justify-center p-4">
+                    <div className="tron-border p-8 bg-black/80 max-w-2xl w-full text-center">
+                        <h1 className="text-4xl font-bold mb-4 text-cyan-400 tracking-widest uppercase">
+                            Gemba-Tron Experience
+                        </h1>
+                        <div className="text-left space-y-4 mb-6 text-cyan-200">
+                            <p className="">> INICIALIZANDO PROTOCOLO GEMBA WALK...</p>
+                            <p className="">> CONEXIÓN ESTABLECIDA CON EL COMANDANTE ALPHA.</p>
+                            <p className="animate-pulse">> ESPERANDO ÓRDENES...</p>
+                        </div>
+                        <button className="bg-cyan-900 hover:bg-cyan-700 text-cyan-100 font-bold py-2 px-6 border border-cyan-400">
+                            INICIAR RECORRIDO DIGITAL
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
