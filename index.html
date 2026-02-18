@@ -3,26 +3,648 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemba-Tron Experience</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Lean HBDI Protocol - Ver 1.0</title>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #000; color: #0f0; font-family: 'Courier New', monospace; }
-        .tron-border { border: 2px solid #0ff; box-shadow: 0 0 15px #0ff; }
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #0aff00;
+            --neon-yellow: #fff200;
+            --neon-red: #ff0000;
+            --bg-dark: #050510;
+            --glass: rgba(10, 20, 40, 0.85);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-blue);
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        /* UI Overlays */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass to 3D by default */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .interactive {
+            pointer-events: auto;
+            background: var(--glass);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px currentColor;
+            margin-bottom: 1rem;
+        }
+
+        input, select, textarea {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--neon-blue);
+            color: white;
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--neon-pink);
+            border-color: var(--neon-pink);
+        }
+
+        button {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        /* Profile Cards */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .profile-card {
+            border: 1px solid white;
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            opacity: 0.7;
+        }
+
+        .profile-card:hover, .profile-card.selected {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* HUD */
+        #hud-layer {
+            justify-content: space-between;
+            align-items: stretch;
+            padding: 20px;
+            display: none; /* Hidden initially */
+        }
+
+        .hud-panel {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--neon-blue);
+            padding: 15px;
+            pointer-events: auto;
+        }
+
+        #top-hud {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            text-align: center;
+            border-bottom: 2px solid var(--neon-pink);
+        }
+
+        #controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        #dialogue-box {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            display: none;
+            flex-direction: column;
+        }
+
+        #mic-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        
+        #mic-btn.listening {
+            background: var(--neon-red);
+            color: white;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        .hidden { display: none !important; }
+        .visible { display: flex !important; }
+
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-4">
-    <div class="tron-border p-10 bg-black/90 max-w-2xl w-full text-center">
-        <h1 class="text-5xl font-bold mb-6 text-cyan-400 tracking-tighter uppercase">
-            Gemba-Tron
-        </h1>
-        <div class="text-left space-y-4 mb-8 text-cyan-200 border-l-2 border-cyan-500 pl-4">
-            <p class="animate-pulse">> SISTEMA EN LÍNEA...</p>
-            <p class="">> BIENVENIDO, COMANDANTE ALPHA.</p>
-            <p class="">> SIMULADOR GEMBA WALK LISTO PARA OPERAR.</p>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <!-- 1. SETUP SCREEN -->
+    <div id="setup-screen" class="ui-layer visible">
+        <div class="interactive">
+            <h1>System Initialization</h1>
+            <p>Please identify yourself to proceed.</p>
+            
+            <input type="text" id="user-name" placeholder="Name / Nombre">
+            <input type="date" id="user-date">
+            <input type="text" id="user-position" placeholder="Position / Puesto">
+            
+            <div style="display:flex; gap:10px;">
+                <select id="user-lang">
+                    <option value="es-MX">Español (MX)</option>
+                    <option value="en-US">English (US)</option>
+                </select>
+                <select id="voice-gender">
+                    <option value="female">Voice: Female</option>
+                    <option value="male">Voice: Male</option>
+                </select>
+            </div>
+
+            <p id="hbdi-question">Only authorized personnel. Do you know your HBDI profile?</p>
+            <div style="display:flex; gap:20px; justify-content: center;">
+                <button onclick="app.showHBDISelection(false)">YES</button>
+                <button onclick="app.showHBDISelection(true)">NO</button>
+            </div>
         </div>
-        <button onclick="alert('Iniciando Interfaz de IA...')" class="bg-cyan-900 hover:bg-cyan-500 text-white font-bold py-3 px-8 border-2 border-cyan-400 transition-all">
-            INICIAR EXPERIENCIA
-        </button>
     </div>
+
+    <!-- 2. HBDI SELECTION -->
+    <div id="hbdi-screen" class="ui-layer hidden">
+        <div class="interactive" style="max-width: 800px;">
+            <h2 id="hbdi-title">Select Resonance Frequency</h2>
+            <p id="hbdi-desc">Choose the profile that best fits your thinking style.</p>
+            
+            <div class="profile-grid">
+                <div class="profile-card" style="border-color: var(--neon-blue); color: var(--neon-blue);" onclick="app.selectProfile('blue')">
+                    <h3>A - Blue (Lógico)</h3>
+                    <p>Analytical, Fact-based, Quantitative.</p>
+                </div>
+                <div class="profile-card" style="border-color: var(--neon-green); color: var(--neon-green);" onclick="app.selectProfile('green')">
+                    <h3>B - Green (Práctico)</h3>
+                    <p>Organized, Sequential, Planned.</p>
+                </div>
+                <div class="profile-card" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="app.selectProfile('red')">
+                    <h3>C - Red (Relacional)</h3>
+                    <p>Interpersonal, Emotional, Kinesthetic.</p>
+                </div>
+                <div class="profile-card" style="border-color: var(--neon-yellow); color: var(--neon-yellow);" onclick="app.selectProfile('yellow')">
+                    <h3>D - Yellow (Experimental)</h3>
+                    <p>Holistic, Intuitive, Integrating.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. HUD -->
+    <div id="hud-layer" class="ui-layer">
+        <div id="top-hud" class="hud-panel">
+            <h2 id="mission-objective">MISSION: DETECT WASTE</h2>
+            <p id="mission-detail">Target: Operator X - Approach to initiate protocols.</p>
+        </div>
+
+        <div id="controls-hint" class="hud-panel">
+            WASD: Move | MOUSE: Look | E: Interact
+        </div>
+
+        <div id="dialogue-box" class="interactive">
+            <p id="agent-msg">System: Initiate conversation with the operator.</p>
+            <textarea id="user-input" rows="3" placeholder="Type your response..."></textarea>
+            <div style="display:flex; justify-content: space-between; align-items:center; width:100%;">
+                <button id="mic-btn" onclick="speechMgr.toggleListen()"><i style="font-style:normal;">🎤</i></button>
+                <button onclick="app.submitResponse()">TRANSMIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. REPORT SCREEN -->
+    <div id="report-screen" class="ui-layer hidden">
+        <div class="interactive">
+            <h1>Mission Report</h1>
+            <div id="report-content" style="text-align: left;">
+                <!-- Generated by JS -->
+            </div>
+            <button onclick="location.reload()">REBOOT SYSTEM</button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG & DATA
+        const LEAN_WASTES = {
+            'es-MX': ['Sobreproducción', 'Esperas', 'Transporte', 'Sobreprocesamiento', 'Inventario', 'Movimientos', 'Defectos'],
+            'en-US': ['Overproduction', 'Waiting', 'Transportation', 'Over-processing', 'Inventory', 'Motion', 'Defects']
+        };
+
+        const HBDI_PROFILES = {
+            blue: { color: 0x00f3ff, name: 'Blue/Azul', trait: 'Logical' },
+            green: { color: 0x0aff00, name: 'Green/Verde', trait: 'Organized' },
+            red: { color: 0xff0000, name: 'Red/Rojo', trait: 'Emotional' },
+            yellow: { color: 0xfff200, name: 'Yellow/Amarillo', trait: 'Creative' }
+        };
+
+        // --- APP STATE ---
+        const app = {
+            state: {
+                user: {},
+                operator: {},
+                lang: 'es-MX',
+                phase: 'SETUP' // SETUP, HBDI, GAME, REPORT
+            },
+
+            init: function() {
+                try {
+                    document.getElementById('user-date').valueAsDate = new Date();
+                    threeMgr.init();
+                    threeMgr.animate();
+                    // Pre-load voices logic moved to speechMgr
+                } catch (e) {
+                    console.error("Init failed", e);
+                }
+            },
+
+            showHBDISelection: function(showGuide) {
+                this.state.user.name = document.getElementById('user-name').value || 'User';
+                this.state.user.position = document.getElementById('user-position').value;
+                this.state.user.date = document.getElementById('user-date').value;
+                this.state.lang = document.getElementById('user-lang').value;
+                this.state.voiceGender = document.getElementById('voice-gender').value;
+
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('setup-screen').classList.remove('visible');
+                document.getElementById('hbdi-screen').classList.remove('hidden');
+                document.getElementById('hbdi-screen').classList.add('visible');
+                
+                if(this.state.lang === 'es-MX') {
+                    document.getElementById('hbdi-title').innerText = "Selección de Perfil";
+                    document.getElementById('hbdi-desc').innerText = "Selecciona el perfil que mejor te identifique.";
+                }
+            },
+
+            selectProfile: function(color) {
+                this.state.user.hbdi = color;
+                this.startGame();
+            },
+
+            startGame: function() {
+                document.getElementById('hbdi-screen').classList.add('hidden');
+                document.getElementById('hud-layer').style.display = 'flex';
+                
+                const wasteList = LEAN_WASTES[this.state.lang];
+                const waste = wasteList[Math.floor(Math.random() * wasteList.length)];
+                
+                const profiles = Object.keys(HBDI_PROFILES);
+                const opProfileKey = profiles[Math.floor(Math.random() * profiles.length)];
+                
+                this.state.operator = {
+                    name: "OP-" + Math.floor(Math.random() * 900 + 100),
+                    hbdi: opProfileKey,
+                    waste: waste
+                };
+
+                threeMgr.spawnOperator(HBDI_PROFILES[opProfileKey].color);
+
+                const missionText = this.state.lang === 'es-MX' 
+                    ? `Detectar Desperdicio: ${waste}. Operador: ${this.state.operator.name} (${HBDI_PROFILES[opProfileKey].name})`
+                    : `Detect Waste: ${waste}. Operator: ${this.state.operator.name} (${HBDI_PROFILES[opProfileKey].name})`;
+                
+                document.getElementById('mission-detail').innerText = missionText;
+
+                const intro = this.state.lang === 'es-MX'
+                    ? `Bienvenido ${this.state.user.name}. Tu misión es abordar al operador ${this.state.operator.name} sobre el desperdicio de ${waste}. Acércate a él.`
+                    : `Welcome ${this.state.user.name}. Your mission is to address operator ${this.state.operator.name} regarding ${waste} waste. Approach him.`;
+                
+                speechMgr.speak(intro);
+                
+                this.state.phase = 'GAME';
+            },
+
+            interactionTriggered: function() {
+                if(this.state.phase !== 'GAME') return;
+                this.state.phase = 'DIALOGUE';
+                
+                document.getElementById('dialogue-box').style.display = 'flex';
+                // Note: controls.unlock() is handled by pointerlock exit logic ideally, but explicit call helps.
+                document.exitPointerLock(); 
+
+                const prompt = this.state.lang === 'es-MX'
+                    ? "Hola. ¿Qué necesitas de mí?"
+                    : "Hello. What do you need from me?";
+                
+                document.getElementById('agent-msg').innerText = `${this.state.operator.name}: "${prompt}"`;
+                speechMgr.speak(prompt);
+                
+                document.getElementById('user-input').focus();
+            },
+
+            submitResponse: function() {
+                const response = document.getElementById('user-input').value;
+                if(!response) return;
+                this.evaluate(response);
+            },
+
+            evaluate: function(text) {
+                const score = {
+                    lean: Math.floor(Math.random() * 30) + 70, 
+                    softSkills: Math.floor(Math.random() * 30) + 70
+                };
+                this.showReport(text, score);
+            },
+
+            showReport: function(lastResponse, score) {
+                document.getElementById('hud-layer').style.display = 'none';
+                document.getElementById('report-screen').classList.remove('hidden');
+                document.getElementById('report-screen').classList.add('visible');
+                
+                const reportHTML = `
+                    <h3>${this.state.lang === 'es-MX' ? 'Evaluación' : 'Evaluation'}</h3>
+                    <p><strong>Operator HBDI:</strong> ${HBDI_PROFILES[this.state.operator.hbdi].name}</p>
+                    <p><strong>Lean Waste:</strong> ${this.state.operator.waste}</p>
+                    <p><strong>Your Input:</strong> "${lastResponse}"</p>
+                    <hr style="border-color:var(--neon-blue)">
+                    <p><strong>Lean Technical Logic:</strong> ${score.lean}%</p>
+                    <p><strong>HBDI Adaptation:</strong> ${score.softSkills}%</p>
+                    <p><em>${score.softSkills > 80 ? 'Excellent adaptation to operator profile!' : 'Consider user personality style more.'}</em></p>
+                `;
+                document.getElementById('report-content').innerHTML = reportHTML;
+                
+                const outro = this.state.lang === 'es-MX'
+                    ? `Ejercicio completado. Puntuación Lean: ${score.lean} porciento.`
+                    : `Exercise complete. Lean score: ${score.lean} percent.`;
+                speechMgr.speak(outro);
+            }
+        };
+
+        // --- SPEECH MANAGER ---
+        const speechMgr = {
+            synth: window.speechSynthesis,
+            recognition: null,
+            
+            init: function() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        document.getElementById('user-input').value += transcript + " ";
+                        document.getElementById('mic-btn').classList.remove('listening');
+                    };
+
+                    this.recognition.onerror = (e) => {
+                        console.warn("Speech error", e);
+                        document.getElementById('mic-btn').classList.remove('listening');
+                    };
+                    
+                    this.recognition.onend = () => {
+                         document.getElementById('mic-btn').classList.remove('listening');
+                    };
+                }
+            },
+
+            speak: function(text) {
+                if(this.synth.speaking) this.synth.cancel();
+                
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = app.state.lang;
+                
+                const voices = this.synth.getVoices();
+                const gender = app.state.voiceGender; 
+                
+                // Voice selection heuristic
+                const targetVoice = voices.find(v => v.lang.includes(app.state.lang.split('-')[0]) && (
+                    gender === 'female' ? (v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Google Español')) 
+                                      : (v.name.includes('Male') || v.name.includes('David'))
+                ));
+                
+                if(targetVoice) utter.voice = targetVoice;
+                
+                this.synth.speak(utter);
+            },
+
+            toggleListen: function() {
+                if(!this.recognition) {
+                    alert('Speech Recognition not supported in this browser.');
+                    return;
+                }
+                
+                this.recognition.lang = app.state.lang;
+                try {
+                    this.recognition.start();
+                    document.getElementById('mic-btn').classList.add('listening');
+                } catch(e) {
+                    this.recognition.stop();
+                    document.getElementById('mic-btn').classList.remove('listening');
+                }
+            }
+        };
+
+        // --- THREE.JS MANAGER ---
+        let scene, camera, renderer;
+        let playerObj, operatorObj;
+        const keys = { w: false, a: false, s: false, d: false };
+        let euler = new THREE.Euler(0, 0, 0, 'YXZ');
+
+        const threeMgr = {
+            init: function() {
+                scene = new THREE.Scene();
+                scene.fog = new THREE.FogExp2(0x050510, 0.02);
+
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 1.6, 5); 
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+                
+                const gridColor = new THREE.Color(0x00f3ff);
+                const grid = new THREE.GridHelper(100, 100, gridColor, 0x111111);
+                scene.add(grid);
+
+                const planeGeo = new THREE.PlaneGeometry(100, 100);
+                const planeMat = new THREE.MeshBasicMaterial({ color: 0x050510, side: THREE.DoubleSide });
+                const plane = new THREE.Mesh(planeGeo, planeMat);
+                plane.rotation.x = -Math.PI / 2;
+                plane.position.y = -0.01;
+                scene.add(plane);
+
+                window.addEventListener('keydown', (e) => this.onKey(e, true));
+                window.addEventListener('keyup', (e) => this.onKey(e, false));
+                
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (document.pointerLockElement === document.body) {
+                        euler.setFromQuaternion(camera.quaternion);
+                        euler.y -= e.movementX * 0.002;
+                        euler.x -= e.movementY * 0.002;
+                        euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+                        camera.quaternion.setFromEuler(euler);
+                    }
+                });
+
+                document.body.addEventListener('click', () => {
+                    if (app.state.phase === 'GAME' && document.getElementById('dialogue-box').style.display !== 'flex') {
+                        document.body.requestPointerLock();
+                    }
+                });
+            },
+
+            onKey: function(e, down) {
+                if(document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+                switch(e.key.toLowerCase()) {
+                    case 'w': keys.w = down; break;
+                    case 'a': keys.a = down; break;
+                    case 's': keys.s = down; break;
+                    case 'd': keys.d = down; break;
+                    case 'e': 
+                        if(down) this.checkInteraction(); 
+                        break;
+                }
+            },
+
+            spawnOperator: function(hexColor) {
+                const geo = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 32);
+                const mat = new THREE.MeshPhongMaterial({ 
+                    color: hexColor, 
+                    emissive: hexColor,
+                    emissiveIntensity: 0.5,
+                    shininess: 100
+                });
+                operatorObj = new THREE.Mesh(geo, mat);
+                operatorObj.position.set(0, 0.9, -10); 
+                scene.add(operatorObj);
+
+                const pointLight = new THREE.PointLight(hexColor, 1, 10);
+                pointLight.position.set(0, 2, -9);
+                scene.add(pointLight);
+            },
+
+            animate: function() {
+                requestAnimationFrame(() => threeMgr.animate());
+                
+                if (app.state.phase === 'GAME') {
+                    const speed = 0.1;
+                    const direction = new THREE.Vector3();
+                    camera.getWorldDirection(direction);
+                    direction.y = 0;
+                    direction.normalize();
+
+                    const side = new THREE.Vector3();
+                    side.crossVectors(camera.up, direction).normalize();
+
+                    if(keys.w) camera.position.addScaledVector(direction, speed);
+                    if(keys.s) camera.position.addScaledVector(direction, -speed);
+                    if(keys.a) camera.position.addScaledVector(side, speed);
+                    if(keys.d) camera.position.addScaledVector(side, -speed);
+                    
+                    // Boundary check roughly
+                    camera.position.y = 1.6; 
+                }
+
+                if(operatorObj && app.state.phase === 'GAME') {
+                    const dist = camera.position.distanceTo(operatorObj.position);
+                    if(dist < 4) {
+                         document.getElementById('controls-hint').innerHTML = "PRESS <span style='color:var(--neon-green)'>[E]</span> TO INTERACT";
+                    } else {
+                         document.getElementById('controls-hint').innerText = "WASD: Move | MOUSE: Look | Click to Focus";
+                    }
+                }
+
+                renderer.render(scene, camera);
+            },
+
+            checkInteraction: function() {
+                if(!operatorObj) return;
+                const dist = camera.position.distanceTo(operatorObj.position);
+                if(dist < 4) {
+                    app.interactionTriggered();
+                }
+            }
+        };
+
+        window.onload = function() {
+            speechMgr.init();
+            app.init();
+            window.speechSynthesis.getVoices();
+        };
+
+    </script>
 </body>
 </html>
