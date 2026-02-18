@@ -4,66 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemba-Tron Experience</title>
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom": "https://esm.sh/react-dom@18.2.0",
-        "lucide-react": "https://esm.sh/lucide-react@0.344.0"
-      }
-    }
-    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: #0f0; font-family: 'Courier New', monospace; overflow: hidden; }
+        body { background-color: #000; color: #0f0; font-family: 'Courier New', monospace; }
         .tron-border { border: 2px solid #0ff; box-shadow: 0 0 15px #0ff; }
-        .scanline { background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 255, 0.1) 50%); background-size: 100% 4px; pointer-events: none; position: fixed; inset: 0; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
-    <div class="scanline"></div>
-
-    <script type="module">
-        import React, { useState, useEffect } from 'react';
-        import ReactDOM from 'react-dom';
-
-        const App = () => {
-            const [authorized, setAuthorized] = useState(false);
-
-            useEffect(() => {
-                const pass = prompt("SISTEMA DE SEGURIDAD TRON\nIngrese código de acceso Alpha:");
-                if (pass === "Alpha2026") {
-                    setAuthorized(true);
-                } else {
-                    alert("ACCESO DENEGADO");
-                    window.location.reload();
-                }
-            }, []);
-
-            if (!authorized) return <div className="h-screen bg-black"></div>;
-
-            return (
-                <div className="h-screen flex flex-col items-center justify-center p-4">
-                    <div className="tron-border p-8 bg-black/80 max-w-2xl w-full text-center">
-                        <h1 className="text-4xl font-bold mb-4 text-cyan-400 tracking-widest uppercase">
-                            Gemba-Tron Experience
-                        </h1>
-                        <div className="text-left space-y-4 mb-6 text-cyan-200">
-                            <p className="">> INICIALIZANDO PROTOCOLO GEMBA WALK...</p>
-                            <p className="">> CONEXIÓN ESTABLECIDA CON EL COMANDANTE ALPHA.</p>
-                            <p className="animate-pulse">> ESPERANDO ÓRDENES...</p>
-                        </div>
-                        <button className="bg-cyan-900 hover:bg-cyan-700 text-cyan-100 font-bold py-2 px-6 border border-cyan-400">
-                            INICIAR RECORRIDO DIGITAL
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+<body class="h-screen flex items-center justify-center p-4">
+    <div class="tron-border p-10 bg-black/90 max-w-2xl w-full text-center">
+        <h1 class="text-5xl font-bold mb-6 text-cyan-400 tracking-tighter uppercase">
+            Gemba-Tron
+        </h1>
+        <div class="text-left space-y-4 mb-8 text-cyan-200 border-l-2 border-cyan-500 pl-4">
+            <p class="animate-pulse">> SISTEMA EN LÍNEA...</p>
+            <p class="">> BIENVENIDO, COMANDANTE ALPHA.</p>
+            <p class="">> SIMULADOR GEMBA WALK LISTO PARA OPERAR.</p>
+        </div>
+        <button onclick="alert('Iniciando Interfaz de IA...')" class="bg-cyan-900 hover:bg-cyan-500 text-white font-bold py-3 px-8 border-2 border-cyan-400 transition-all">
+            INICIAR EXPERIENCIA
+        </button>
+    </div>
 </body>
 </html>
