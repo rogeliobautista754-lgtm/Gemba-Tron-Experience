@@ -484,40 +484,87 @@
             },
 
             evaluate: function (text) {
-                // Mock Evaluation
-                const score = {
-                    lean: Math.floor(Math.random() * 30) + 70,
-                    softSkills: Math.floor(Math.random() * 30) + 70
-                };
+                // Mock Analysis Logic
+                // We mock a "Grade" based on length and randomness to force the "retry" mechanic.
+                // Longer text = higher chance of passing.
 
-                // Save Result
-                this.state.results.push({
-                    station: this.state.currentStationIndex + 1,
-                    operator: this.state.operator,
-                    response: text,
-                    score: score
-                });
+                const isLong = text.length > 15;
+                let leanScore = Math.floor(Math.random() * 20) + 60; // Base 60-80
+                let softScore = Math.floor(Math.random() * 20) + 60; // Base 60-80
 
-                // Next Step?
-                if (this.state.currentStationIndex < 3) {
-                    this.nextStation();
+                if (isLong) {
+                    leanScore += 15;
+                    softScore += 15;
+                }
+
+                const currentOperator = this.state.operator;
+                const profileName = HBDI_PROFILES[currentOperator.hbdi].name;
+
+                // Pass threshold (average > 80)
+                const isPass = (leanScore + softScore) / 2 >= 80;
+
+                if (isPass) {
+                    // SUCCESS
+                    const successMsg = this.state.lang === 'es-MX'
+                        ? "Excelente abordaje. Has conectado con su estilo de pensamiento. Procediendo a la siguiente estación."
+                        : "Excellent approach. You matched their thinking style. Proceeding to the next station.";
+
+                    document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-green)">MENTOR:</span> ${successMsg}`;
+                    speechMgr.speak(successMsg);
+
+                    // Save result
+                    this.state.results.push({
+                        station: this.state.currentStationIndex + 1,
+                        operator: currentOperator,
+                        response: text,
+                        score: { lean: leanScore, softSkills: softScore }
+                    });
+
+                    // Clear and lock input temporarily
+                    document.getElementById('user-input').value = "";
+
+                    setTimeout(() => {
+                        document.getElementById('dialogue-box').style.display = 'none';
+                        if (this.state.currentStationIndex < 3) {
+                            this.nextStation();
+                        } else {
+                            this.showFinalReport();
+                        }
+                    }, 4000);
+
                 } else {
-                    this.showFinalReport();
+                    // FAIL - MENTOR FEEDBACK
+                    let hint = "";
+                    if (this.state.lang === 'es-MX') {
+                        switch (currentOperator.hbdi) {
+                            case 'blue': hint = "Recuerda: Un perfil Azul valora los DATOS, hechos y lógica pura. Sé más técnico."; break;
+                            case 'green': hint = "Recuerda: Un perfil Verde necesita ORDEN, pasos detallados y seguridad. Estructura tu respuesta."; break;
+                            case 'red': hint = "Recuerda: Un perfil Rojo prioriza a las PERSONAS y sentimientos. Sé más empático y cálido."; break;
+                            case 'yellow': hint = "Recuerda: Un perfil Amarillo busca VISIÓN, ideas y 'el bosque completo'. No te pierdas en detalles."; break;
+                        }
+                        const mentorMsg = `Veo tu punto técnico (${leanScore}%), pero tu adaptación al perfil ${profileName} es baja (${softScore}%). ${hint} Inténtalo de nuevo.`;
+                        document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-yellow)">MENTOR:</span> ${mentorMsg}`;
+                        speechMgr.speak(mentorMsg);
+                    } else {
+                        switch (currentOperator.hbdi) {
+                            case 'blue': hint = "Remember: Blue profiles value DATA, facts. Be more technical."; break;
+                            case 'green': hint = "Remember: Green profiles need ORDER and safety. Structure your response."; break;
+                            case 'red': hint = "Remember: Red profiles prioritize PEOPLE. Be more empathetic."; break;
+                            case 'yellow': hint = "Remember: Yellow profiles seek VISION. Don't get lost in details."; break;
+                        }
+                        const mentorMsg = `Technical point taken (${leanScore}%), but adaptation to ${profileName} is low (${softScore}%). ${hint} Try again.`;
+                        document.getElementById('agent-msg').innerHTML = `<span style="color:var(--neon-yellow)">MENTOR:</span> ${mentorMsg}`;
+                        speechMgr.speak(mentorMsg);
+                    }
+
+                    // Focus for retry
+                    document.getElementById('user-input').focus();
                 }
             },
 
             nextStation: function () {
-                const msg = this.state.lang === 'es-MX'
-                    ? "Estación completada. Procediendo a la siguiente zona de la planta."
-                    : "Station completed. Proceeding to the next zone.";
-
-                speechMgr.speak(msg);
-
-                // Delay slightly to let speech start
-                setTimeout(() => {
-                    this.state.currentStationIndex++;
-                    this.startStation();
-                }, 3000); // 3 seconds delay
+                this.state.currentStationIndex++;
+                this.startStation();
             },
 
             showFinalReport: function () {
